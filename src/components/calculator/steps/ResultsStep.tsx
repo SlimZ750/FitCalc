@@ -8,6 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { ChevronLeft, RefreshCw, Download, Share2, FileImage, FileText } from 'lucide-react';
 import type { CalculatorFormData } from '@/types';
 import { DailyMealProgram } from '../DailyMealProgram';
+import { MealPlanInfographic } from '../MealPlanInfographic';
 import { exportAsImage, exportAsPDF, shareResults } from '@/lib/utils/exportResults';
 import { useState } from 'react';
 
@@ -37,7 +38,7 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
   const handleExportPDF = async () => {
     setIsExporting(true);
     try {
-      await exportAsPDF('results-container', `fitcalc-results-${Date.now()}`);
+      await exportAsPDF('meal-plan-export', `fitcalc-meal-plan-${Date.now()}`);
       setShowExportMenu(false);
     } catch (error) {
       console.error('Export failed:', error);
@@ -50,24 +51,11 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
   const handleExportPNG = async () => {
     setIsExporting(true);
     try {
-      await exportAsImage('results-container', `fitcalc-results-${Date.now()}`, 'png');
+      await exportAsImage('meal-plan-export', `fitcalc-meal-plan-${Date.now()}`, 'png');
       setShowExportMenu(false);
     } catch (error) {
       console.error('Export failed:', error);
       alert('❌ Erreur lors de l\'export PNG');
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportJPG = async () => {
-    setIsExporting(true);
-    try {
-      await exportAsImage('results-container', `fitcalc-results-${Date.now()}`, 'jpg');
-      setShowExportMenu(false);
-    } catch (error) {
-      console.error('Export failed:', error);
-      alert('❌ Erreur lors de l\'export JPG');
     } finally {
       setIsExporting(false);
     }
@@ -83,7 +71,7 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
           fats: macros.fats,
           goal: t(`calculator.goals.${formData.goal}`),
         },
-        'results-container'
+        'meal-plan-export'
       );
     } catch (error) {
       console.error('Share failed:', error);
@@ -102,6 +90,7 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
   }
 
   const { bmr, tdee, macros } = results;
+  const goalLabel = t(`calculator.results.goalCalories.${formData.goal}`);
 
   return (
     <div className="space-y-6">
@@ -397,6 +386,19 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
       </div>
       </div>{/* End of results-container */}
 
+      <div
+        aria-hidden="true"
+        style={{ position: 'absolute', left: '-10000px', top: 0, pointerEvents: 'none' }}
+      >
+        <MealPlanInfographic
+          calories={macros.calories}
+          protein={macros.protein}
+          carbs={macros.carbs}
+          fats={macros.fats}
+          goalLabel={goalLabel}
+        />
+      </div>
+
       {/* Export and Share Actions */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1">
@@ -420,7 +422,7 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
                 <FileText className="h-5 w-5 text-red-600" />
                 <div>
                   <div className="font-medium">Export PDF</div>
-                  <div className="text-xs text-gray-500">Document imprimable</div>
+                  <div className="text-xs text-gray-500">Infographie repas imprimable</div>
                 </div>
               </button>
               <button
@@ -430,19 +432,8 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
               >
                 <FileImage className="h-5 w-5 text-blue-600" />
                 <div>
-                  <div className="font-medium">Export PNG</div>
-                  <div className="text-xs text-gray-500">Image haute qualité</div>
-                </div>
-              </button>
-              <button
-                onClick={handleExportJPG}
-                disabled={isExporting}
-                className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3 rounded-b-lg transition-colors"
-              >
-                <FileImage className="h-5 w-5 text-green-600" />
-                <div>
-                  <div className="font-medium">Export JPG</div>
-                  <div className="text-xs text-gray-500">Image compressée</div>
+                  <div className="font-medium">Télécharger l&apos;image</div>
+                  <div className="text-xs text-gray-500">Infographie repas PNG</div>
                 </div>
               </button>
             </div>
@@ -472,5 +463,3 @@ export function ResultsStep({ formData, results, onBack, onReset }: ResultsStepP
     </div>
   );
 }
-
-
