@@ -144,12 +144,12 @@ export function CalculatorWizard() {
     <div className="max-w-3xl mx-auto">
       {/* Progress Indicator */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center mb-4">
           {STEPS.map((step, index) => {
             const Icon = step.icon;
 
             return (
-              <div key={step.id} className="flex items-center flex-1">
+              <div key={step.id} className="relative flex items-center justify-center flex-1">
                 {/* Step Circle */}
                 <div className="relative flex items-center justify-center w-12 h-12 rounded-full border-2 border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900">
                   <Icon className="h-6 w-6 text-gray-500 dark:text-gray-400" />
@@ -157,7 +157,7 @@ export function CalculatorWizard() {
 
                 {/* Connector Line */}
                 {index < STEPS.length - 1 && (
-                  <div className="flex-1 h-1 mx-2 rounded bg-gray-200 dark:bg-gray-700" />
+                  <div className="absolute left-1/2 right-0 h-1 translate-x-6 rounded bg-gray-200 dark:bg-gray-700" />
                 )}
               </div>
             );

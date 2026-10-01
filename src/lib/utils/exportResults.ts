@@ -6,6 +6,19 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
+async function waitForImages(element: HTMLElement): Promise<void> {
+  const images = Array.from(element.querySelectorAll('img'));
+  await Promise.all(
+    images.map((image) => {
+      if (image.complete) return Promise.resolve();
+      return new Promise<void>((resolve, reject) => {
+        image.addEventListener('load', () => resolve(), { once: true });
+        image.addEventListener('error', () => reject(new Error(`Unable to load image: ${image.src}`)), { once: true });
+      });
+    })
+  );
+}
+
 /**
  * Export results as PNG image
  */
@@ -20,9 +33,11 @@ export async function exportAsImage(
   }
 
   try {
+    await waitForImages(element);
     const canvas = await html2canvas(element, {
       scale: 2, // Higher quality
-      backgroundColor: format === 'jpg' ? '#ffffff' : null,
+      // Keep the poster's black page background in PNG as well as JPG.
+      backgroundColor: '#050505',
       logging: false,
       useCORS: true,
     });
@@ -59,9 +74,10 @@ export async function exportAsPDF(
   }
 
   try {
+    await waitForImages(element);
     const canvas = await html2canvas(element, {
       scale: 2,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#050505',
       logging: false,
       useCORS: true,
     });
@@ -75,20 +91,9 @@ export async function exportAsPDF(
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-    const imgX = (pdfWidth - imgWidth * ratio) / 2;
-    const imgY = 10;
 
-    pdf.addImage(
-      imgData,
-      'PNG',
-      imgX,
-      imgY,
-      imgWidth * ratio,
-      imgHeight * ratio
-    );
+    // The infographic uses the same portrait ratio as an A4 page, so fill it edge-to-edge.
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
 
     pdf.save(`${filename}.pdf`);
   } catch (error) {
@@ -117,6 +122,7 @@ export async function shareResults(
     try {
       const element = document.getElementById(elementId);
       if (element) {
+        await waitForImages(element);
         const canvas = await html2canvas(element, {
           scale: 2,
           backgroundColor: '#ffffff',
